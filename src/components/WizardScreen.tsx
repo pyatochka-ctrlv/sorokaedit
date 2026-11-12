@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Scissors,
   RefreshCw,
@@ -17,7 +17,14 @@ import {
   Sliders
 } from 'lucide-react';
 import { NewsItem, SentenceCard, WizardStep, MarkerType, TrapOption } from '../types';
-import { calculateCardsDuration, getWordCount } from '../data/newsData';
+import {
+  calculateCardsDuration,
+  getCardRole,
+  getMissingRoles,
+  getWordCount,
+  hasDuplicatePair,
+  shuffled
+} from '../data/newsData';
 import { soundManager } from '../utils/audio';
 
 interface WizardScreenProps {
@@ -73,8 +80,22 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
   const [replaceCustomText, setReplaceCustomText] = useState<string>('');
   const [replaceErrorTip, setReplaceErrorTip] = useState<string | null>(null);
 
-  // Step 1 hint level (0 = none, 1 = general, 2 = zone, 3 = card)
-  const [hintLevel, setHintLevel] = useState<number>(0);
+  // Згорнута картка-підказка («Підказка» в нижній панелі)
+  const [isHintOpen, setIsHintOpen] = useState<boolean>(false);
+
+  // Крок 1: Сорока підказує, що в кошику лежить важлива репліка
+  const [step1Tip, setStep1Tip] = useState<'missing' | 'duplicate' | null>(null);
+
+  // Варіанти заміни пастки — у випадковому порядку (перемішуємо раз на новину)
+  const trapOptions = useMemo(() => shuffled(news.trapOptions), [news.id]);
+
+  // Закриваємо підказки при зміні кроку чи складу стрічки
+  useEffect(() => {
+    setIsHintOpen(false);
+  }, [currentStep]);
+  useEffect(() => {
+    setStep1Tip(null);
+  }, [cards.length, currentStep]);
 
   // Step 3 order warning modal state
   const [showOrderWarning, setShowOrderWarning] = useState<boolean>(false);
@@ -89,29 +110,24 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
   // Selected card
   const selectedCard = cards.find((c) => c.id === selectedCardId) || null;
 
-  // Soroka instruction bubble text based on current step and context
-  const getSorokaMessage = (): string => {
-    // Check if kid cut important card in step 1
-    const hasCoreInBin = binCards.some((c) =>
-      ['thought', 'reason', 'example'].includes(c.originalType) &&
-      c.originalType !== news.trapReplaceAs
-    );
-    if (hasCoreInBin && currentStep === 1) {
-      return 'Ой, це важливе! Поверни його з кошика нижче ↩️';
-    }
+  // Крок 1: скільки реплік лишилось у стрічці
+  const REQUIRED_COUNT = 3;
+  const feedCount = cards.length;
+  const hasExactCount = feedCount === REQUIRED_COUNT;
 
+  // Текст у бульбашці Сороки залежно від кроку
+  const getSorokaMessage = (): string => {
     if (replaceErrorTip && currentStep === 2) {
       return replaceErrorTip;
     }
 
     switch (currentStep) {
       case 1:
-        if (hintLevel === 1) return 'Шукай речення, яке розповідає про щось інше, а не про новину!';
-        if (hintLevel === 2) return 'Подивися на речення, виділені жовтою рамкою — одне з них зайве!';
-        if (hintLevel === 3) return 'Ось це речення зовсім не потрібне в ефірі — сміливо вирізай!';
-        return 'Тут є речення, яке нічого не каже про думку. Торкнись його й виріж!';
+        if (step1Tip === 'duplicate') return 'Лишилось дві схожі репліки, обери одну.';
+        if (step1Tip === 'missing') return 'Здається, одна важлива репліка в кошику. Перевір!';
+        return 'Залиш рівно 3 репліки: думку, причину й приклад. Усе інше виріж. Одна з трьох може бути слизькою — її виправимо на кроці 2.';
       case 2:
-        return 'Це речення звучить так, ніби воно до теми, але не допомагає думці. Спробуй замінити!';
+        return 'Одне речення звучить так, ніби воно до теми, але нічого не доводить. Спробуй замінити!';
       case 3:
         return 'Тепер порядок: спочатку що я думаю, потім чому, потім приклад.';
       case 4:
@@ -121,22 +137,19 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
     }
   };
 
-  // Check if Step 1 can proceed (no water left in feed)
-  const hasWaterInFeed = cards.some((c) => c.currentType === 'water');
-  const hasCoreInBin = binCards.some((c) =>
-    ['thought', 'reason', 'example'].includes(c.originalType) &&
-    c.originalType !== news.trapReplaceAs
-  );
-
   // Handle Step progression
   const handleNextStep = () => {
     soundManager.playClick();
     if (currentStep === 1) {
-      if (hasWaterInFeed) {
-        setHintLevel(Math.min(3, hintLevel + 1));
+      if (!hasExactCount) return;
+      if (hasDuplicatePair(cards)) {
+        soundManager.playHint();
+        setStep1Tip('duplicate');
         return;
       }
-      if (hasCoreInBin) {
+      if (getMissingRoles(cards, news).length > 0) {
+        soundManager.playHint();
+        setStep1Tip('missing');
         return;
       }
       onSetStep(2);
@@ -152,8 +165,7 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
       setSelectedCardId(null);
     } else if (currentStep === 3) {
       // Check if order is correct: thought -> reason -> example
-      const getCardRole = (c: SentenceCard) => c.replacedType || c.currentType;
-      const roles = cards.map(getCardRole);
+      const roles = cards.map((c) => getCardRole(c, news));
       const isCorrectOrder = roles[0] === 'thought' && roles[1] === 'reason' && roles[2] === 'example';
 
       if (!isCorrectOrder && !showOrderWarning) {
@@ -183,7 +195,7 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
     if (!selectedCardId) return;
     if (!option.correct) {
       soundManager.playHint();
-      setReplaceErrorTip('Хм, це теж не підтримує думку. Спробуй інший варіант або вигадай свій!');
+      setReplaceErrorTip('Хм, цей варіант теж нічого не доводить. Спробуй інший або вигадай свій!');
       return;
     }
     soundManager.playClick();
@@ -318,8 +330,8 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
                     {isPast ? <Check className="w-5 h-5 stroke-[3]" /> : step.num}
                   </div>
                   <span
-                    className={`text-[11px] sm:text-xs font-bold mt-1.5 hidden sm:block ${
-                      isActive ? 'text-amber-300 font-extrabold' : 'text-slate-400'
+                    className={`text-base font-bold mt-1.5 hidden sm:block px-2 rounded-md bg-[#1C2230] ${
+                      isActive ? 'text-amber-300 font-extrabold' : isPast ? 'text-emerald-300' : 'text-slate-200'
                     }`}
                   >
                     {step.label}
@@ -348,6 +360,52 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
         </div>
       </div>
 
+      {/* 2б. ЗГОРНУТА ПІДКАЗКА (кнопка «Підказка») та порада кроку 4 */}
+      {(isHintOpen || currentStep === 4) && (
+        <div className="max-w-4xl mx-auto w-full px-4 pb-3">
+          <div className="bg-[#1C2332] border-2 border-[#3A4560] rounded-2xl p-4 sm:p-5 space-y-3">
+            {currentStep === 1 && isHintOpen && (
+              <>
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-lg sm:text-xl font-black text-white">Що вирізаємо?</h3>
+                  <button
+                    onClick={() => setIsHintOpen(false)}
+                    className="p-2 text-slate-400 hover:text-white rounded-lg"
+                    title="Згорнути підказку"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-base text-slate-200">
+                  <li className="bg-[#232B3E] rounded-xl p-3"><span className="text-xl mr-1.5">🌀</span><strong className="text-white">Відступ</strong> — цікаво, але про інше.</li>
+                  <li className="bg-[#232B3E] rounded-xl p-3"><span className="text-xl mr-1.5">🔁</span><strong className="text-white">Повтор</strong> — те саме іншими словами.</li>
+                  <li className="bg-[#232B3E] rounded-xl p-3"><span className="text-xl mr-1.5">💬</span><strong className="text-white">«Усі знають»</strong> — загальна фраза.</li>
+                  <li className="bg-[#232B3E] rounded-xl p-3"><span className="text-xl mr-1.5">🤔</span><strong className="text-white">Вагання</strong> — «хоча, можливо…».</li>
+                </ul>
+                <p className="text-base text-amber-200 font-semibold leading-relaxed">
+                  Дивись не на перше слово, а на питання: чи відповідає речення на „що я думаю?“, „чому?“ або „як це буває?“.
+                </p>
+              </>
+            )}
+            {currentStep === 2 && isHintOpen && (
+              <p className="text-base text-slate-200 font-semibold leading-relaxed">
+                🔁 Пастка починається як потрібна репліка, але нічого не доводить. Торкнись її й обери варіант, який справді пояснює думку.
+              </p>
+            )}
+            {currentStep === 3 && isHintOpen && (
+              <p className="text-base text-slate-200 font-semibold leading-relaxed">
+                ↕️ Прочитай уголос: спочатку «що я думаю», потім «чому», а тоді «як це буває». Звучить складно? Перестав картки.
+              </p>
+            )}
+            {currentStep === 4 && (
+              <p className="text-base text-amber-200 font-semibold leading-relaxed">
+                🏷 Подивись не на перше слово, а на питання, на яке відповідає речення.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 3. MAIN AREA: СТРІЧКА (THE FEED OF CARDS) */}
       <main className="max-w-4xl mx-auto w-full px-4 py-2 flex-1 overflow-y-auto space-y-4">
         {/* Step 3 Model Order Badges (non-clickable guide) */}
@@ -374,16 +432,6 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
             const isSelected = selectedCardId === card.id;
             const isTrap = card.currentType === 'trap';
 
-            // Visual hint border in Step 1
-            let hintHighlightClass = '';
-            if (currentStep === 1) {
-              if (hintLevel === 3 && card.currentType === 'water') {
-                hintHighlightClass = 'ring-4 ring-amber-400 animate-pulse border-amber-400';
-              } else if (hintLevel === 2 && card.currentType === 'water') {
-                hintHighlightClass = 'ring-2 ring-amber-400/70 border-amber-400/80';
-              }
-            }
-
             // Step 4 Marker background styling
             let markerBg = 'bg-[#1D2331] border-[#2C364C] text-slate-100';
             if (card.marker === 'thought') {
@@ -406,7 +454,7 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
                   isSelected
                     ? 'ring-4 ring-amber-400/80 border-amber-400 shadow-xl shadow-amber-500/10'
                     : 'hover:border-slate-500'
-                } ${hintHighlightClass}`}
+                }`}
               >
                 {/* Step 2 Trap Notice Badge */}
                 {currentStep === 2 && isTrap && (
@@ -418,8 +466,9 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
                   </div>
                 )}
 
-                {/* Card Sentence Text (>= 22px requirement) */}
-                <div className="text-[20px] sm:text-[22px] md:text-[24px] font-semibold leading-relaxed tracking-wide">
+                {/* Card Sentence Text (>= 22px requirement) + ✂️ на кроці 1 */}
+                <div className="flex items-start gap-3">
+                <div className="flex-1 min-w-0 text-[20px] sm:text-[22px] md:text-[24px] font-semibold leading-relaxed tracking-wide">
                   {/* If Harder mode is active, allow clicking on words to cut tail */}
                   {isHarderMode && currentStep === 1 ? (
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -453,6 +502,20 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
                   ) : (
                     <span>{card.text}</span>
                   )}
+                </div>
+                {currentStep === 1 && (
+                  <span
+                    aria-hidden="true"
+                    className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-2xl border-2 transition-colors ${
+                      isSelected
+                        ? 'bg-amber-500 border-amber-300'
+                        : 'bg-[#262E40] border-[#36415A]'
+                    }`}
+                    title="Натисни, щоб вирізати"
+                  >
+                    ✂️
+                  </span>
+                )}
                 </div>
 
                 {/* HARDER MODE: Big "Cut tail here" button */}
@@ -605,6 +668,29 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
           })}
         </div>
 
+        {/* STEP 1: Лічильник реплік */}
+        {currentStep === 1 && (
+          <div
+            aria-live="polite"
+            className={`rounded-2xl border-2 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4 transition-colors ${
+              hasExactCount
+                ? 'bg-emerald-950/60 border-emerald-500 text-emerald-200'
+                : 'bg-[#1C2332] border-amber-500/50 text-amber-200'
+            }`}
+          >
+            <span className="text-xl sm:text-2xl font-black tabular-nums">
+              Реплік: {feedCount} → потрібно {REQUIRED_COUNT}
+            </span>
+            <span className="text-lg sm:text-xl font-extrabold">
+              {hasExactCount
+                ? 'Саме стільки! ✓'
+                : feedCount > REQUIRED_COUNT
+                ? `Ще ${feedCount - REQUIRED_COUNT} ${pluralExtra(feedCount - REQUIRED_COUNT)}`
+                : 'Ой, забагато вирізано. Поверни щось із кошика'}
+            </span>
+          </div>
+        )}
+
         {/* STEP 1: Trash Tray ("Кошик") with 1-tap restore */}
         {currentStep === 1 && binCards.length > 0 && (
           <div className="mt-6 pt-4 border-t-2 border-dashed border-[#2B3548] space-y-3">
@@ -639,11 +725,11 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
 
       {/* 4. BOTTOM NAVIGATION BAR (MAX 3 ACTION BUTTONS AT A TIME) */}
       <footer className="bg-[#1C2230] border-t border-[#2C3549] p-4 sm:p-5">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 sm:gap-3">
           {/* Button 1: Назад */}
           <button
             onClick={handlePrevStep}
-            className="h-14 px-6 rounded-xl bg-[#242C3E] hover:bg-[#2F3A52] text-slate-300 hover:text-white font-bold text-base flex items-center gap-2 transition-colors shrink-0"
+            className="h-14 px-3 sm:px-6 rounded-xl bg-[#242C3E] hover:bg-[#2F3A52] text-slate-300 hover:text-white font-bold text-base flex items-center gap-1.5 sm:gap-2 transition-colors shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>{currentStep === 1 ? 'До новин' : 'Назад'}</span>
@@ -653,23 +739,30 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
           <button
             onClick={() => {
               soundManager.playHint();
-              setHintLevel((prev) => (prev >= 3 ? 1 : prev + 1));
+              setIsHintOpen((prev) => !prev);
             }}
-            className="h-14 px-6 rounded-xl bg-[#252E42] hover:bg-[#2F3B54] border border-amber-500/40 text-amber-300 font-bold text-base flex items-center gap-2 transition-all shadow-sm"
+            className={`h-14 px-3 sm:px-6 rounded-xl border font-bold text-base flex items-center gap-1.5 sm:gap-2 transition-all shadow-sm ${
+              isHintOpen
+                ? 'bg-amber-500/20 border-amber-400 text-amber-200'
+                : 'bg-[#252E42] hover:bg-[#2F3B54] border-amber-500/40 text-amber-300'
+            }`}
+            aria-expanded={isHintOpen}
           >
-            <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
+            <Sparkles className="w-5 h-5 text-amber-400 animate-pulse hidden sm:block" />
             <span>Підказка</span>
           </button>
 
           {/* Button 3: Далі ➡️ or У ефір! 🎬 */}
           <button
             onClick={handleNextStep}
-            disabled={currentStep === 4 && !allMarked}
-            className={`h-14 px-8 rounded-xl font-black text-lg flex items-center gap-2 shadow-lg transition-all active:scale-95 shrink-0 ${
+            disabled={(currentStep === 4 && !allMarked) || (currentStep === 1 && !hasExactCount)}
+            className={`h-14 px-4 sm:px-8 rounded-xl font-black text-base sm:text-lg flex items-center gap-1.5 sm:gap-2 shadow-lg transition-all active:scale-95 shrink-0 ${
               currentStep === 4
                 ? allMarked
                   ? 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 text-white shadow-emerald-900/30'
                   : 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-50'
+                : currentStep === 1 && !hasExactCount
+                ? 'bg-slate-700 text-slate-400 cursor-not-allowed opacity-50'
                 : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 shadow-amber-500/20'
             }`}
           >
@@ -714,7 +807,7 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
 
               {/* 3 Library Options */}
               <div className="space-y-2.5">
-                {news.trapOptions?.map((opt, oIdx) => (
+                {trapOptions.map((opt, oIdx) => (
                   <button
                     key={oIdx}
                     onClick={() => handleSelectReplacementOption(opt)}
@@ -799,3 +892,12 @@ export const WizardScreen: React.FC<WizardScreenProps> = ({
     </div>
   );
 };
+
+// «Ще 1 зайва», «Ще 2 зайві», «Ще 5 зайвих»
+function pluralExtra(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'зайва';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'зайві';
+  return 'зайвих';
+}
