@@ -2,6 +2,7 @@ import React from 'react';
 import { Film, Sparkles, ArrowRight, Clock } from 'lucide-react';
 import { NewsItem } from '../types';
 import { soundManager } from '../utils/audio';
+import { calculateTextDuration, formatTimecode } from '../data/newsData';
 
 interface NewsSelectorProps {
   newsList: NewsItem[];
@@ -68,12 +69,8 @@ export const NewsSelector: React.FC<NewsSelectorProps> = ({
       <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-4 flex-1">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {newsList.map((news) => {
-            // Rough raw duration calculation
-            const rawWordCount = news.segments.reduce(
-              (sum, seg) => sum + seg.text.split(/\s+/).filter(Boolean).length,
-              0
-            );
-            const rawDuration = Math.round(rawWordCount / 2.5);
+            // Сирий хронометраж: усі 8 речень, 2 слова на секунду
+            const rawDuration = news.segments.reduce((sum, seg) => sum + calculateTextDuration(seg.text), 0);
 
             return (
               <div
@@ -92,7 +89,7 @@ export const NewsSelector: React.FC<NewsSelectorProps> = ({
                     </span>
                     <span className="flex items-center gap-1 font-mono text-xs text-slate-400 bg-[#222837] px-2 py-0.5 rounded border border-[#2B3448]">
                       <Clock className="w-3 h-3 text-amber-400" />
-                      сирий: ~0:{rawDuration}
+                      сирий: ~{formatTimecode(rawDuration)}
                     </span>
                   </div>
 

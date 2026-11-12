@@ -1,10 +1,23 @@
-export type SegmentType = 'thought' | 'reason' | 'example' | 'water' | 'trap';
+export type CoreRole = 'thought' | 'reason' | 'example';
 
-export type MarkerType = 'thought' | 'reason' | 'example' | null;
+/** Приховані від дитини типи речень. */
+export type SegmentType =
+  | 'thought'
+  | 'reason'
+  | 'example'
+  | 'digression' // відступ: цікаво, але про інше
+  | 'repeat' // повтор потрібної репліки іншими словами
+  | 'general' // «усі знають»
+  | 'hedge' // вагання
+  | 'trap'; // пастка: маркер є, а доказу немає
+
+export type MarkerType = CoreRole | null;
 
 export interface Segment {
   type: SegmentType;
   text: string;
+  /** Для repeat: яку потрібну репліку дублює. */
+  repeatOf?: CoreRole;
 }
 
 export interface TrapOption {
@@ -16,8 +29,9 @@ export interface NewsItem {
   id: number;
   title: string;
   segments: Segment[];
-  trapReplaceAs?: 'thought' | 'reason' | 'example';
-  trapOptions?: TrapOption[];
+  /** Яку частину формули підміняє пастка. */
+  trapReplaceAs: CoreRole;
+  trapOptions: TrapOption[];
 }
 
 export interface SentenceCard {
@@ -26,8 +40,9 @@ export interface SentenceCard {
   originalType: SegmentType;
   currentType: SegmentType | 'custom';
   marker: MarkerType;
+  repeatOf?: CoreRole;
   isCustom?: boolean;
-  replacedType?: 'thought' | 'reason' | 'example';
+  replacedType?: CoreRole;
   isReplaced?: boolean;
 }
 
