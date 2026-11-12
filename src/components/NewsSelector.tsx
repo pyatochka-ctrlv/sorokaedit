@@ -1,29 +1,21 @@
 import React from 'react';
-import { Film, Users, Sparkles, ArrowRight, Clock, Shuffle } from 'lucide-react';
+import { Film, Sparkles, ArrowRight, Clock } from 'lucide-react';
 import { NewsItem } from '../types';
 import { soundManager } from '../utils/audio';
 
 interface NewsSelectorProps {
   newsList: NewsItem[];
   onSelectNews: (news: NewsItem) => void;
-  onSwitchToTeacher: () => void;
 }
 
 export const NewsSelector: React.FC<NewsSelectorProps> = ({
   newsList,
-  onSelectNews,
-  onSwitchToTeacher
+  onSelectNews
 }) => {
-  const handleRandomPick = () => {
-    soundManager.playClick();
-    const randomIndex = Math.floor(Math.random() * newsList.length);
-    onSelectNews(newsList[randomIndex]);
-  };
-
   return (
     <div className="min-h-screen bg-[#15181F] text-slate-100 flex flex-col select-none">
       {/* Top Bar */}
-      <header className="h-16 bg-[#1A1F2C] border-b border-[#2B3242] px-4 sm:px-8 flex items-center justify-between">
+      <header className="h-16 bg-[#1A1F2C] border-b border-[#2B3242] px-4 sm:px-8 flex items-center">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-xl shadow-lg shadow-amber-500/20">
             🦅
@@ -36,33 +28,6 @@ export const NewsSelector: React.FC<NewsSelectorProps> = ({
               Монтажна студія новин
             </h1>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <a
-            href="./single-index.html"
-            download="index.html"
-            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
-            title="Завантажити готовий один файл index.html для GitHub Pages"
-          >
-            <span>📥 Завантажити index.html</span>
-          </a>
-
-          <button
-            onClick={handleRandomPick}
-            className="px-3 py-1.5 bg-[#252C3E] hover:bg-[#30384D] border border-[#323B52] text-amber-300 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors"
-          >
-            <Shuffle className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Випадкова новина</span>
-          </button>
-
-          <button
-            onClick={onSwitchToTeacher}
-            className="px-3 py-1.5 bg-[#252C3E] hover:bg-[#30384D] border border-[#323B52] text-slate-300 hover:text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors"
-          >
-            <Users className="w-3.5 h-3.5 text-blue-400" />
-            <span>Режим викладача (Zoom)</span>
-          </button>
         </div>
       </header>
 
@@ -79,7 +44,7 @@ export const NewsSelector: React.FC<NewsSelectorProps> = ({
                 Обери матеріал для свого 30-секундного ефіру!
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Сорока принесла сирий матеріал із купою «води» та підступною пасткою. Розріж його лезом ✂️, викинь зайве, збережи формулу <strong className="text-amber-300">«Думка 💡 → Бо 🔑 → Наприклад 📸»</strong> та вкладися у 30 секунд!
+                Сорока принесла сирий матеріал із купою «води» та підступною пасткою. Виріж зайве, виправ пастку, розстав репліки по порядку й познач частини формули <strong className="text-amber-300">«Думка 💡 → Бо 🔑 → Наприклад 📸»</strong>. Вклади результат у 30 секунд!
               </p>
             </div>
 

@@ -178,7 +178,6 @@ export default function App() {
       <NewsSelector
         newsList={NEWS_LIST}
         onSelectNews={handleSelectNews}
-        onSwitchToTeacher={() => setAppMode('teacher')}
       />
     );
   }
