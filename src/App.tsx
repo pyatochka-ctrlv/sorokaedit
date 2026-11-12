@@ -142,16 +142,23 @@ export default function App() {
   };
 
   // Finish wizard & Validate for broadcast
+  // Коротка анімація «Готуємо ефір…»: якщо щось не так — зупиняється й показує ОДНУ підказку
+  const [isCheckingAir, setIsCheckingAir] = useState<boolean>(false);
   const handleFinishWizard = () => {
+    if (isCheckingAir) return;
     const validation = validateWizard(selectedNews, cards, binCards);
-    if (validation.isValid) {
-      soundManager.playSuccessFanfare();
-      setHasSeenSuccess(true);
-      setIsExportModalOpen(true);
-    } else {
-      soundManager.playHint();
-      setValidationError(validation);
-    }
+    setIsCheckingAir(true);
+    window.setTimeout(() => {
+      setIsCheckingAir(false);
+      if (validation.isValid) {
+        soundManager.playSuccessFanfare();
+        setHasSeenSuccess(true);
+        setIsExportModalOpen(true);
+      } else {
+        soundManager.playHint();
+        setValidationError(validation);
+      }
+    }, 1100);
   };
 
   const handleToggleMute = () => {
@@ -225,6 +232,19 @@ export default function App() {
           handleResetAll();
         }}
       />
+
+      {/* Анімація перевірки перед ефіром */}
+      {isCheckingAir && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#1C2230] border-2 border-emerald-500/50 rounded-2xl w-full max-w-sm p-6 text-center space-y-4 shadow-2xl">
+            <div className="text-4xl animate-bounce">🎬</div>
+            <div className="text-lg font-extrabold text-white">Готуємо ефір…</div>
+            <div className="h-3 bg-[#131720] rounded-full overflow-hidden border border-[#2C3549]">
+              <div className="h-full w-1/2 bg-emerald-500 rounded-full animate-pulse" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Friendly Validation Error Dialog with "Повернутися до кроку N" */}
       {validationError && (
