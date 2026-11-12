@@ -1,0 +1,6 @@
+{
+  "name": "Монтажна Сороки — Сорока ТВ",
+  "description": "Інтерактивна монтажна новин для дітей: ріж лезом, прибирай воду, виправляй пастки та вкладайся у 30 секунд за формулою «Думка — Бо — Наприклад».",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

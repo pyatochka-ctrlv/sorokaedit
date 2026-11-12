@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Монтажна Сороки — Сорока ТВ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background-color: #15181F;
+      color: #E2E8F0;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    button { cursor: pointer; font-family: inherit; border: none; outline: none; }
+    button:active { transform: scale(0.98); }
+    .btn-large { min-height: 56px; border-radius: 14px; font-weight: 700; font-size: 17px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 24px; transition: all 0.15s ease; }
+    .btn-amber { background: linear-gradient(135deg, #F59E0B, #EA580C); color: #0F172A; }
+    .btn-amber:hover { background: linear-gradient(135deg, #FBBF24, #F97316); }
+    .btn-slate { background: #242C3E; color: #E2E8F0; border: 1px solid #333E56; }
+    .btn-slate:hover { background: #2E384E; color: #FFF; }
+    .btn-emerald { background: linear-gradient(135deg, #059669, #0D9488); color: #FFF; }
+    .btn-emerald:hover { background: linear-gradient(135deg, #10B981, #14B8A6); }
+    .card-sentence {
+      background: #1C2230;
+      border: 2px solid #2B3448;
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 14px;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.5;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .card-sentence.selected {
+      border-color: #F59E0B;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+    }
+    .card-sentence.marker-thought {
+      background: linear-gradient(135deg, rgba(146, 64, 14, 0.4), #1C2230);
+      border-color: #F59E0B;
+    }
+    .card-sentence.marker-reason {
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.4), #1C2230);
+      border-color: #3B82F6;
+    }
+    .card-sentence.marker-example {
+      background: linear-gradient(135deg, rgba(6, 78, 59, 0.4), #1C2230);
+      border-color: #10B981;
+    }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .badge-amber { background: rgba(245, 158, 11, 0.2); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-blue { background: rgba(59, 130, 246, 0.2); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.4); }
+    .badge-emerald { background: rgba(16, 185, 129, 0.2); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .step-circle {
+      width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 16px; border: 2px solid #333E56; background: #202737; color: #94A3B8;
+      transition: all 0.2s;
+    }
+    .step-circle.active {
+      background: #F59E0B; color: #0F172A; border-color: #FCD34D; transform: scale(1.1); box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    }
+    .step-circle.done {
+      background: #059669; color: #FFF; border-color: #10B981;
+    }
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 100;
+    }
+    .modal-box {
+      background: #1C2230; border: 1px solid #2F384C; border-radius: 24px; max-width: 580px; width: 100%;
+      padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header style="background: #1C2230; border-bottom: 1px solid #2B3448; padding: 12px 20px;">
+    <div style="max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, #F59E0B, #EA580C); display: flex; align-items: center; justify-content: center; font-size: 22px;">🦅</div>
+        <div>
+          <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #F59E0B; letter-spacing: 1px;">Сорока ТВ</div>
+          <div id="header-title" style="font-size: 15px; font-weight: 700; color: #FFF;">Монтажна студія</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div id="duration-indicator" style="display: none; flex-direction: column; align-items: flex-end;">
+          <div style="font-size: 12px; font-weight: 700; font-family: monospace;" id="duration-text">Ефір: 0 с / 30 с</div>
+          <div style="width: 120px; height: 10px; background: #131720; border-radius: 10px; border: 1px solid #2B3448; overflow: hidden; margin-top: 3px;">
+            <div id="duration-bar" style="height: 100%; width: 0%; background: #10B981; transition: width 0.3s;"></div>
+          </div>
+        </div>
+        <button id="btn-mode-toggle" class="btn-large btn-slate" style="min-height: 40px; padding: 0 14px; font-size: 13px;" onclick="toggleTeacherMode()">
+          👥 Режим викладача
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- SCREEN 1: SELECT NEWS -->
+  <div id="screen-select" style="max-width: 900px; margin: 0 auto; width: 100%; padding: 24px 16px; flex: 1;">
+    <div style="background: linear-gradient(135deg, #1E2536, #1C2332); border: 1px solid #2B3448; border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+      <div class="badge badge-amber" style="margin-bottom: 10px;">✨ Завдання для юних монтажерів</div>
+      <h1 style="font-size: 24px; font-weight: 800; color: #FFF; margin-bottom: 8px;">Обери матеріал для свого 30-секундного ефіру!</h1>
+      <p style="font-size: 15px; color: #94A3B8; line-height: 1.6;">
+        Сорока принесла сирий матеріал з «водою» та пасткою. Розріж його, викинь зайве, збережи формулу <strong style="color: #FCD34D;">«Думка 💡 → Бо 🔑 → Наприклад 📸»</strong> та вкладися у 30 секунд!
+      </p>
+      <div style="margin-top: 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; padding: 12px 16px;">
+        📢 Назви номер уголос у Zoom: <strong style="color: #FCD34D; font-size: 18px;">«Беру сьому!»</strong>
+      </div>
+    </div>
+
+    <div id="news-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <!-- SCREEN TEACHER: ZOOM DASHBOARD -->
+  <div id="screen-teacher" style="max-width: 900px; margin: 0 auto; width: 100%; padding: 24px 16px; flex: 1; display: none;">
+    <div style="background: #1C2230; border: 1px solid #2B3448; border-radius: 20px; padding: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h2 style="font-size: 20px; font-weight: 800; color: #FFF;">Екран викладача (для показу в Zoom)</h2>
+        <p style="font-size: 14px; color: #94A3B8;">Клікайте на картку, щоб позначити «Зайнято». Діти не візьмуть ту саму новину!</p>
+      </div>
+      <button class="btn-large btn-slate" style="min-height: 44px; font-size: 14px;" onclick="clearAllTeacherTaken()">
+        🔄 Очистити все
+      </button>
+    </div>
+    <div id="teacher-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px;">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <!-- SCREEN 2: 4-STEP WIZARD -->
+  <div id="screen-wizard" style="max-width: 800px; margin: 0 auto; width: 100%; padding: 16px; flex: 1; display: none;">
+    <!-- Stepper indicator -->
+    <div style="display: flex; align-items: center; justify-content: space-between; position: relative; margin-bottom: 20px;">
+      <div style="position: absolute; top: 22px; left: 30px; right: 30px; height: 3px; background: #2B3448; z-index: 1;"></div>
+      <div style="display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2;">
+        <div id="step-node-1" class="step-circle active">1</div>
+        <span style="font-size: 11px; font-weight: 700; margin-top: 6px; color: #F59E0B;">Прибери зайве</span>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2;">
+        <div id="step-node-2" class="step-circle">2</div>
+        <span style="font-size: 11px; font-weight: 700; margin-top: 6px; color: #94A3B8;">Заміни пастку</span>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2;">
+        <div id="step-node-3" class="step-circle">3</div>
+        <span style="font-size: 11px; font-weight: 700; margin-top: 6px; color: #94A3B8;">Порядок</span>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; position: relative; z-index: 2;">
+        <div id="step-node-4" class="step-circle">4</div>
+        <span style="font-size: 11px; font-weight: 700; margin-top: 6px; color: #94A3B8;">Маркери</span>
+      </div>
+    </div>
+
+    <!-- Soroka Speech Bubble -->
+    <div style="background: linear-gradient(135deg, #1F2636, #1A212F); border: 2px solid rgba(245,158,11,0.5); border-radius: 20px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+      <div style="width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg, #F59E0B, #EA580C); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0;">🦅</div>
+      <div>
+        <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #F59E0B; margin-bottom: 2px;">Сорока радить:</div>
+        <div id="soroka-text" style="font-size: 18px; font-weight: 700; color: #FFF; line-height: 1.4;">
+          Тут є речення, яке нічого не каже про думку. Торкнись його й виріж!
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 Order Guide Strip -->
+    <div id="order-guide-strip" style="display: none; background: #1C2230; border: 1px solid #2B3448; border-radius: 14px; padding: 12px; margin-bottom: 16px; text-align: center; font-size: 14px; font-weight: 700; color: #94A3B8;">
+      Зразок порядку: <span style="color: #FCD34D;">💡 Що я думаю</span> → <span style="color: #93C5FD;">🔑 Чому (Бо)</span> → <span style="color: #6EE7B7;">📸 Приклад</span>
+    </div>
+
+    <!-- Cards Feed -->
+    <div id="cards-feed" style="margin-bottom: 20px;">
+      <!-- Generated by JS -->
+    </div>
+
+    <!-- Trash Bin Tray (Step 1) -->
+    <div id="bin-tray" style="display: none; border-top: 2px dashed #333E56; padding-top: 16px; margin-bottom: 24px;">
+      <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #94A3B8; margin-bottom: 10px;">
+        🗑 Кошик (можна повернути одним кліком):
+      </div>
+      <div id="bin-cards"></div>
+    </div>
+
+    <!-- Bottom Action Bar (Max 3 buttons) -->
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0; border-top: 1px solid #2B3448;">
+      <button class="btn-large btn-slate" onclick="handleWizardBack()">
+        ⬅️ Назад
+      </button>
+      <button class="btn-large btn-slate" style="color: #FCD34D; border-color: rgba(245,158,11,0.4);" onclick="handleWizardHint()">
+        💡 Підказка
+      </button>
+      <button id="btn-wizard-next" class="btn-large btn-amber" onclick="handleWizardNext()">
+        Далі ➡️
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: READY FOR AIR -->
+  <div id="screen-export" style="max-width: 760px; margin: 0 auto; width: 100%; padding: 24px 16px; flex: 1; display: none;">
+    <div style="background: linear-gradient(135deg, #059669, #D97706); border-radius: 20px; padding: 18px 24px; color: #FFF; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div style="font-weight: 800; font-size: 18px; text-transform: uppercase; letter-spacing: 1px;">📻 ГОТОВО ДО ЕФІРУ</div>
+      <div id="export-duration-compare" class="font-mono" style="background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 10px; font-size: 14px;">Було 0:38 → Стало 0:14</div>
+    </div>
+
+    <div style="background: #1C2230; border: 1px solid #2B3448; border-radius: 24px; padding: 24px; margin-bottom: 20px;">
+      <div id="export-story-title" style="font-size: 22px; font-weight: 800; color: #FFF; margin-bottom: 16px;"></div>
+      <div id="export-text-cards" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px;"></div>
+
+      <div style="background: rgba(245,158,11,0.15); border: 2px solid rgba(245,158,11,0.4); border-radius: 16px; padding: 16px; color: #FDE68A;">
+        <div style="font-weight: 800; font-size: 16px; margin-bottom: 4px;">🎙️ Твій вихід у прямий ефір!</div>
+        <p style="font-size: 14px; line-height: 1.5; color: #E2E8F0;">
+          Тепер прочитай свій коментар <strong>ГОЛОСОМ</strong>, коли ведучий передасть тобі слово в Zoom. Розкажи, що ти вирізав і що замінив!
+        </p>
+      </div>
+
+      <!-- Teleprompter Karaoke Bar -->
+      <div style="background: #131720; border-radius: 16px; padding: 16px; margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <button id="btn-prompter" class="btn-large btn-amber" style="min-height: 48px; font-size: 15px;" onclick="togglePrompter()">
+          ▶ Режим «Суфлер» (2 слова/сек)
+        </button>
+        <span style="font-size: 12px; color: #94A3B8;">Потренуйся читати перед Zoom!</span>
+      </div>
+      <div id="prompter-display" style="display: none; background: #0F131C; border-radius: 12px; padding: 16px; margin-top: 12px; font-size: 20px; font-weight: 600; line-height: 1.6; max-height: 140px; overflow-y: auto;"></div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; gap: 12px;">
+      <button class="btn-large btn-slate" onclick="remontageCurrent()">
+        🔄 Змонтувати ще раз
+      </button>
+      <button class="btn-large btn-emerald" onclick="goToSelectScreen()">
+        🎬 Ще одна новина
+      </button>
+    </div>
+  </div>
+
+  <!-- REPLACEMENT MODAL -->
+  <div id="replace-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-size: 20px; font-weight: 800; color: #FFF;">🔁 Обери заміну для пастки</h3>
+        <button onclick="closeReplaceModal()" style="font-size: 24px; color: #94A3B8; background: none;">✕</button>
+      </div>
+      <div id="replace-options-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;"></div>
+      <div style="background: #131720; border: 1px solid #2B3448; border-radius: 14px; padding: 14px;">
+        <div style="font-weight: 700; font-size: 13px; color: #F59E0B; margin-bottom: 6px;">✍️ Або вигадай сам(а) (до 15 слів):</div>
+        <textarea id="custom-replace-text" rows="2" placeholder="Напиши своє речення для ефіру..." style="width: 100%; background: #1E2536; border: 1px solid #333E56; border-radius: 8px; padding: 8px; color: #FFF; font-family: inherit; font-size: 15px; outline: none; resize: none;"></textarea>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+          <span id="custom-words-count" style="font-size: 12px; color: #94A3B8;">0 / 15 слів</span>
+          <button class="btn-large btn-amber" style="min-height: 38px; padding: 0 16px; font-size: 13px;" onclick="applyCustomReplace()">
+            Вставити мій кадр
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDER WARNING MODAL -->
+  <div id="order-warning-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-box" style="text-align: center;">
+      <div style="font-size: 40px; margin-bottom: 10px;">🦅</div>
+      <h3 style="font-size: 20px; font-weight: 800; color: #FFF; margin-bottom: 8px;">Здається, тут ще щось переплутано. Спробуємо?</h3>
+      <p style="font-size: 15px; color: #94A3B8; line-height: 1.5; margin-bottom: 20px;">
+        Золоте правило телеканалу: спочатку Що я думаю 💡, потім Чому 🔑, а наприкінці — Приклад 📸!
+      </p>
+      <div style="display: flex; justify-content: center; gap: 12px;">
+        <button class="btn-large btn-amber" onclick="closeOrderWarning(true)">Спробую ще ⬆ ⬇</button>
+        <button class="btn-large btn-slate" onclick="closeOrderWarning(false)">Далі, як є</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTICE / ERROR MODAL WITH RETURN BUTTON -->
+  <div id="notice-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-box" style="text-align: center;">
+      <div style="font-size: 40px; margin-bottom: 10px;">🦅</div>
+      <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #F59E0B;" id="notice-tag">Сорока радить:</div>
+      <h3 style="font-size: 20px; font-weight: 800; color: #FFF; margin-top: 4px; margin-bottom: 10px;" id="notice-title"></h3>
+      <p style="font-size: 16px; color: #E2E8F0; line-height: 1.5; margin-bottom: 24px;" id="notice-msg"></p>
+      <button class="btn-large btn-amber" id="btn-notice-action" onclick="closeNoticeModal()">
+        Повернутися ➡️
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // 12 NEWS DATA
+    const NEWS = [
+      {
+        id: 1, title: 'Морозиво офіційно визнали сніданком', trapReplaceAs: 'reason',
+        options: [
+          { text: 'Бо зранку треба поїсти щось ситне, щоб мати сили до обіду.', correct: true },
+          { text: 'Бо я люблю пломбір.', correct: false },
+          { text: 'Бо в магазині багато морозива.', correct: false }
+        ],
+        segments: [
+          { type: 'water', text: 'Ну от, значить, сьогодні Сорока принесла новину, і я тут подумав, ну, про морозиво, бо я взагалі люблю думати про їжу.' },
+          { type: 'example', text: "Якось я з'їв на сніданок тільки печиво, і на математиці думав лише про обід." },
+          { type: 'water', text: 'А ще в нас у холодильнику завжди є морозиво, ванільне і шоколадне, і ще якесь фісташкове, але його ніхто не їсть.' },
+          { type: 'thought', text: 'Я думаю, що це погана ідея.' },
+          { type: 'trap', text: 'Бо морозиво дуже смачне.' },
+          { type: 'water', text: 'Ну, загалом, от так, коротше, морозиво — це морозиво.' }
+        ]
+      },
+      {
+        id: 2, title: "У школах дозволили приходити в піжамах щоп'ятниці", trapReplaceAs: 'example',
+        options: [
+          { text: 'Наприклад, на піжамній вечірці в таборі всі були веселіші й спокійніші.', correct: true },
+          { text: 'Наприклад, піжами бувають з котиками.', correct: false },
+          { text: 'Наприклад, я сплю в піжамі.', correct: false }
+        ],
+        segments: [
+          { type: 'water', text: 'Слухайте, ну, піжами, вони такі, ну, піжами, у кожного є піжама, у мене навіть дві.' },
+          { type: 'reason', text: 'Бо в зручному одязі легше зосередитися на уроці, і ніщо не тисне.' },
+          { type: 'water', text: 'А моя сестра каже, що піжами — це для малих, але сама спить у піжамі з єдинорогами, я бачив.' },
+          { type: 'thought', text: 'Я за таку ідею.' },
+          { type: 'trap', text: 'У мене піжама з динозаврами, зелена.' },
+          { type: 'water', text: 'Ну от, загалом, усе, що я хотів сказати, ну, майже все.' }
+        ]
+      },
+      {
+        id: 3, title: 'Коти вимагають права голосу на виборах старости класу', trapReplaceAs: 'reason',
+        options: [
+          { text: 'Бо вони теж живуть у школі й знають, що там відбувається.', correct: true },
+          { text: 'Бо коти люблять рибу.', correct: false },
+          { text: 'Бо котів багато.', correct: false }
+        ],
+        segments: [
+          { type: 'thought', text: 'Я думаю, котам можна дати голос на виборах старости.' },
+          { type: 'water', text: 'Ну, коти, вони, знаєте, такі пухнасті, і от у бабусі був кіт Мурчик, але це було давно, я тоді ще в садочок ходив.' },
+          { type: 'trap', text: 'Бо коти бувають руді й сірі.' },
+          { type: 'water', text: "А ще в мене є хом'як, але він не кіт, тому він, мабуть, не голосуватиме, хоча хто знає." },
+          { type: 'example', text: 'Наприклад, наш шкільний кіт завжди приходить на збори класу й уважно слухає.' },
+          { type: 'water', text: 'Ну от, коротше, коти.' }
+        ]
+      },
+      {
+        id: 4, title: 'Домашні завдання тепер задають батькам', trapReplaceAs: 'thought',
+        options: [
+          { text: 'Я думаю, що це смішна, але корисна ідея.', correct: true },
+          { text: 'Я думаю, що в мене є батьки.', correct: false },
+          { text: 'Я думаю, що домашка буває.', correct: false }
+        ],
+        segments: [
+          { type: 'water', text: 'Ну от домашка, вона така, ну, буває велика, буває маленька, а буває взагалі на вихідні, це найгірше.' },
+          { type: 'example', text: 'Наприклад, тато вчора сам захотів розв\'язати мою задачу і сказав, що забув, як це робиться.' },
+          { type: 'trap', text: 'Батьки бувають різні.' },
+          { type: 'water', text: 'У мого друга мама — лікарка, а тато водить тролейбус, і от вони, ну, дуже зайняті.' },
+          { type: 'reason', text: 'Бо батьки теж можуть дізнатися щось нове.' },
+          { type: 'water', text: 'Ну, загалом, я все сказав, мабуть.' }
+        ]
+      },
+      {
+        id: 5, title: 'Уроки скоротили до 10 хвилин, а перерву подовжили до години', trapReplaceAs: 'example',
+        options: [
+          { text: 'Наприклад, на малюванні я тільки встигаю дістати фарби, а вже дзвоник.', correct: true },
+          { text: 'Наприклад, перерва буває велика і мала.', correct: false },
+          { text: 'Наприклад, урок — це урок.', correct: false }
+        ],
+        segments: [
+          { type: 'reason', text: 'Бо за десять хвилин нічого не встигнеш зрозуміти.' },
+          { type: 'water', text: 'Ну от, перерва — це перерва, а урок — це урок, і от вони, ну, різні, і в нас ще дзвоник дуже гучний.' },
+          { type: 'thought', text: 'Я проти такої зміни.' },
+          { type: 'water', text: 'Хоча годину гратися — теж нічого, ми б у футбол пограли, якщо не дощ, а якщо дощ, то в коридорі.' },
+          { type: 'trap', text: 'Наприклад, я люблю перерви.' },
+          { type: 'water', text: 'Ну от, такі справи.' }
+        ]
+      },
+      {
+        id: 6, title: 'Телефони вимикатимуться самі, якщо граєш більше години', trapReplaceAs: 'reason',
+        options: [
+          { text: 'Бо так легше вчасно зупинитися і не втомлювати очі.', correct: true },
+          { text: 'Бо в телефоні є ігри.', correct: false },
+          { text: 'Бо телефон треба заряджати.', correct: false }
+        ],
+        segments: [
+          { type: 'water', text: 'Ну телефони, вони, знаєте, різні бувають, у когось айфон, у когось інший, у мене от з тріснутим екраном, бо я його впустив.' },
+          { type: 'thought', text: 'Мені здається, це корисна функція.' },
+          { type: 'water', text: 'Хоча мій брат казав, що він би все одно щось придумав, він у мене хитрий.' },
+          { type: 'example', text: 'Наприклад, я якось грав до ночі і зранку проспав школу.' },
+          { type: 'trap', text: 'Бо телефони дорогі.' },
+          { type: 'water', text: 'Ну от, коротше, телефони.' }
+        ]
+      },
+      {
+        id: 7, title: 'Кожен клас отримає дракона-чергового', trapReplaceAs: 'thought',
+        options: [
+          { text: 'Я думаю, дракон-черговий — класна ідея.', correct: true },
+          { text: 'Я думаю, дракони великі.', correct: false },
+          { text: 'Я думаю, дракони живуть у печерах.', correct: false }
+        ],
+        segments: [
+          { type: 'trap', text: 'Дракони бувають зелені.' },
+          { type: 'water', text: 'Ну, в одному мультику був дракон, і він там літав, і ще в нього був друг, хлопчик, вони дружили, це довга історія.' },
+          { type: 'example', text: 'Наприклад, у нас у класі ніхто не хоче витирати дошку й поливати квіти.' },
+          { type: 'water', text: 'А квіти в нас, до речі, вже всохли, ну, майже.' },
+          { type: 'reason', text: 'Бо дракон зможе робити роботу, яку ніхто не любить.' },
+          { type: 'water', text: 'Ну от, драконів я люблю.' }
+        ]
+      },
+      {
+        id: 8, title: 'Понеділок переносять на неділю', trapReplaceAs: 'reason',
+        options: [
+          { text: 'Бо тоді в нас залишиться лише один вихідний.', correct: true },
+          { text: 'Бо в неділю сонце.', correct: false },
+          { text: 'Бо понеділок — перший день.', correct: false }
+        ],
+        segments: [
+          { type: 'thought', text: 'Як на мене, це погана ідея.' },
+          { type: 'water', text: 'Ну, днів тижня сім, ну, ви знаєте: понеділок, вівторок і так далі, я їх усі знаю ще з першого класу.' },
+          { type: 'example', text: 'Наприклад, у неділю я завжди їжджу до бабусі на вареники.' },
+          { type: 'water', text: 'Вареники в неї з вишнями, а ще з картоплею, але з вишнями кращі, ну, мені так здається.' },
+          { type: 'trap', text: 'Бо понеділок починається на літеру «П».' },
+          { type: 'water', text: 'Ну, от і все.' }
+        ]
+      },
+      {
+        id: 9, title: 'Брокколі тепер на смак як шоколад', trapReplaceAs: 'example',
+        options: [
+          { text: 'Наприклад, мій брат ніколи не їсть брокколі, а шоколад — завжди.', correct: true },
+          { text: 'Наприклад, брокколі росте на городі.', correct: false },
+          { text: 'Наприклад, шоколад солодкий.', correct: false }
+        ],
+        segments: [
+          { type: 'water', text: 'Ну, брокколі, вона така, ну, як маленьке дерево, я колись думав, що це справжнє дерево, тільки маленьке.' },
+          { type: 'reason', text: 'Бо тоді діти їстимуть більше овочів і будуть здоровішими.' },
+          { type: 'trap', text: 'Наприклад, брокколі зелена.' },
+          { type: 'water', text: 'Хоча шоколад теж буває різний: білий, чорний, з горіхами, ну, всякий.' },
+          { type: 'thought', text: 'Я за такий винахід.' },
+          { type: 'water', text: 'Ну от, загалом, так.' }
+        ]
+      },
+      {
+        id: 10, title: 'Контрольні тепер пишуть учителі, а учні перевіряють', trapReplaceAs: 'reason',
+        options: [
+          { text: 'Бо коли перевіряєш інших, сам краще розумієш тему.', correct: true },
+          { text: 'Бо в учителів є ручки.', correct: false },
+          { text: 'Бо контрольні бувають у п\'ятницю.', correct: false }
+        ],
+        segments: [
+          { type: 'water', text: 'Ну, контрольні, вони бувають з математики, з мови, з усього, і от ми якраз у вівторок писали, ну, не скажу як.' },
+          { type: 'example', text: 'Наприклад, коли я пояснював сестрі задачу, то сам її краще зрозумів.' },
+          { type: 'thought', text: 'Я думаю, що це цікава ідея.' },
+          { type: 'water', text: 'Хоча вчителі, мабуть, усе напишуть на відмінно, вони ж усе знають, ну, майже все.' },
+          { type: 'trap', text: 'Бо вчителі дорослі.' },
+          { type: 'water', text: 'Ну от.' }
+        ]
+      },
+      {
+        id: 11, title: 'У місті запустили автобус, який їде туди, куди хочуть діти', trapReplaceAs: 'thought',
+        options: [
+          { text: 'Я думаю, це найкраща новина тижня.', correct: true },
+          { text: 'Я думаю, автобус їде.', correct: false },
+          { text: 'Я думаю, що є автобуси.', correct: false }
+        ],
+        segments: [
+          { type: 'water', text: 'Автобуси бувають жовті, червоні, ну, і двоповерхові ще, я такий бачив, ну, на картинці.' },
+          { type: 'reason', text: 'Бо діти рідко самі обирають, куди поїхати.' },
+          { type: 'water', text: 'Зазвичай ми їдемо туди, куди треба дорослим: у магазин, на пошту, ну, в усякі нудні місця.' },
+          { type: 'trap', text: 'Автобус має колеса.' },
+          { type: 'example', text: 'Наприклад, я б одразу поїхала в зоопарк до жирафів.' },
+          { type: 'water', text: 'Ну от, такі думки.' }
+        ]
+      },
+      {
+        id: 12, title: 'Дітям дозволили приходити на уроки в костюмах супергероїв', trapReplaceAs: 'reason',
+        options: [
+          { text: 'Бо в костюмі почуваєшся сміливішим.', correct: true },
+          { text: 'Бо костюми бувають сині.', correct: false },
+          { text: 'Бо супергерої літають.', correct: false }
+        ],
+        segments: [
+          { type: 'thought', text: 'Мені здається, це чудова новина.' },
+          { type: 'water', text: 'Ну, супергерої, їх багато, є там усякі, ну, хтось літає, хтось швидко бігає, а хтось просто багатий.' },
+          { type: 'trap', text: 'Бо костюми продаються в магазині.' },
+          { type: 'water', text: 'У мене, до речі, є костюм, але він уже малий, мама каже, що його треба віддати.' },
+          { type: 'example', text: 'Наприклад, на святі в костюмі я не боявся виступати.' },
+          { type: 'water', text: 'Ну от, коротше, супергерої.' }
+        ]
+      }
+    ];
+
+    // STATE
+    let currentNews = null;
+    let currentStep = 1;
+    let cards = [];
+    let binCards = [];
+    let selectedCardId = null;
+    let hintLevel = 0;
+    let teacherTaken = {};
+    let isPrompterRunning = false;
+    let prompterWordIndex = 0;
+    let prompterTimer = null;
+    let originalRawDuration = 38;
+
+    // AUDIO SYNTH
+    let audioCtx = null;
+    function playTone(freq, duration = 0.1) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+      } catch(e){}
+    }
+    function playFanfare() {
+      [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => playTone(f, 0.25), i * 120));
+    }
+
+    // WORD COUNT & DURATION
+    function getWordsCount(str) {
+      return (str || '').trim().split(/\s+/).filter(Boolean).length;
+    }
+    function calcDuration(cardList) {
+      const words = cardList.reduce((sum, c) => sum + getWordsCount(c.text), 0);
+      return Number((words / 2.5).toFixed(1));
+    }
+
+    // INIT APP
+    window.onload = function() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('mode') === 'teacher') {
+        openTeacherScreen();
+      } else {
+        renderNewsGrid();
+      }
+    };
+
+    function renderNewsGrid() {
+      const grid = document.getElementById('news-grid');
+      grid.innerHTML = '';
+      NEWS.forEach(n => {
+        const rawWords = n.segments.reduce((sum, s) => sum + getWordsCount(s.text), 0);
+        const rawDur = Math.round(rawWords / 2.5);
+        const item = document.createElement('div');
+        item.style = 'background: #1C2230; border: 2px solid #2B3448; border-radius: 18px; padding: 20px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;';
+        item.onmouseenter = () => item.style.borderColor = '#F59E0B';
+        item.onmouseleave = () => item.style.borderColor = '#2B3448';
+        item.onclick = () => selectNews(n);
+        item.innerHTML = `
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-family: monospace; font-size: 16px; font-weight: 800; color: #F59E0B;">#${n.id}</span>
+              <span style="font-size: 11px; font-weight: 700; color: #94A3B8; font-family: monospace;">~0:${rawDur} с</span>
+            </div>
+            <h3 style="font-size: 16px; font-weight: 700; color: #FFF; line-height: 1.4;">${n.title}</h3>
+          </div>
+          <div style="font-size: 13px; font-weight: 700; color: #F59E0B; margin-top: 14px; text-align: right;">Монтувати ➡️</div>
+        `;
+        grid.appendChild(item);
+      });
+    }
+
+    function selectNews(newsItem) {
+      playTone(440, 0.08);
+      currentNews = newsItem;
+      cards = newsItem.segments.map((seg, idx) => ({
+        id: 'c_' + idx + '_' + Date.now(),
+        text: seg.text,
+        type: seg.type,
+        marker: null,
+        isReplaced: false
+      }));
+      binCards = [];
+      selectedCardId = null;
+      currentStep = 1;
+      hintLevel = 0;
+      originalRawDuration = calcDuration(cards);
+
+      document.getElementById('screen-select').style.display = 'none';
+      document.getElementById('screen-teacher').style.display = 'none';
+      document.getElementById('screen-export').style.display = 'none';
+      document.getElementById('screen-wizard').style.display = 'block';
+      document.getElementById('duration-indicator').style.display = 'flex';
+      document.getElementById('header-title').innerText = newsItem.title;
+
+      renderWizard();
+    }
+
+    function renderWizard() {
+      // Update step nodes
+      for (let s = 1; s <= 4; s++) {
+        const node = document.getElementById('step-node-' + s);
+        node.className = 'step-circle ' + (currentStep === s ? 'active' : currentStep > s ? 'done' : '');
+        if (currentStep > s) node.innerHTML = '✓'; else node.innerHTML = s;
+      }
+
+      // Duration bar
+      const dur = calcDuration(cards);
+      const isGood = dur <= 30;
+      document.getElementById('duration-text').innerText = 'Ефір: ' + dur + ' с / 30 с';
+      document.getElementById('duration-text').style.color = isGood ? '#10B981' : '#F59E0B';
+      const bar = document.getElementById('duration-bar');
+      bar.style.width = Math.min(100, (dur / 30) * 100) + '%';
+      bar.style.background = isGood ? '#10B981' : '#F59E0B';
+
+      // Soroka message
+      const hasCoreInBin = binCards.some(c => ['thought', 'reason', 'example'].includes(c.type) && c.type !== currentNews.trapReplaceAs);
+      let msg = '';
+      if (hasCoreInBin && currentStep === 1) {
+        msg = 'Ой, це важливе! Поверни його з кошика нижче ↩️';
+      } else if (currentStep === 1) {
+        if (hintLevel === 1) msg = 'Шукай речення, яке розповідає про щось інше!';
+        else if (hintLevel === 2) msg = 'Подивися на речення із жовтою рамкою — одне з них зайве!';
+        else if (hintLevel === 3) msg = 'Ось це речення зовсім не потрібне в ефірі — сміливо вирізай!';
+        else msg = 'Тут є речення, яке нічого не каже про думку. Торкнись його й виріж!';
+      } else if (currentStep === 2) {
+        msg = 'Це речення звучить так, ніби воно до теми, але не допомагає думці. Спробуй замінити!';
+      } else if (currentStep === 3) {
+        msg = 'Тепер порядок: спочатку що я думаю, потім чому, потім приклад.';
+      } else if (currentStep === 4) {
+        msg = 'Допоможи глядачам: познач, де думка, де причина, а де приклад.';
+      }
+      document.getElementById('soroka-text').innerText = msg;
+
+      // Guides
+      document.getElementById('order-guide-strip').style.display = (currentStep === 3) ? 'block' : 'none';
+      document.getElementById('bin-tray').style.display = (currentStep === 1 && binCards.length > 0) ? 'block' : 'none';
+
+      // Feed
+      const feed = document.getElementById('cards-feed');
+      feed.innerHTML = '';
+      cards.forEach((card, idx) => {
+        const isSel = (selectedCardId === card.id);
+        const cardEl = document.createElement('div');
+        let markerClass = card.marker ? 'marker-' + card.marker : '';
+        cardEl.className = 'card-sentence ' + (isSel ? 'selected ' : '') + markerClass;
+
+        if (currentStep === 1 && card.type === 'water') {
+          if (hintLevel === 3) cardEl.style.boxShadow = '0 0 0 4px #F59E0B';
+          else if (hintLevel === 2) cardEl.style.boxShadow = '0 0 0 2px rgba(245, 158, 11, 0.7)';
+        }
+
+        cardEl.onclick = () => {
+          playTone(400, 0.05);
+          selectedCardId = isSel ? null : card.id;
+          renderWizard();
+        };
+
+        let inner = '';
+        if (currentStep === 2 && card.type === 'trap') {
+          inner += '<div class="badge badge-amber" style="margin-bottom: 8px;">✨ Це пастка! Торкнись, щоб замінити</div>';
+        }
+        inner += '<div>' + card.text + '</div>';
+
+        // Action buttons inside card
+        if (currentStep === 1 && isSel) {
+          inner += '<div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #333E56;">'
+            + '<button class="btn-large btn-amber" onclick="event.stopPropagation(); cutCard(\'' + card.id + '\')">✂️ Виріж це речення</button>'
+            + '</div>';
+        } else if (currentStep === 2 && isSel) {
+          inner += '<div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #333E56;">'
+            + '<button class="btn-large btn-amber" onclick="event.stopPropagation(); openReplaceModal(\'' + card.id + '\')">🔁 Заміни це речення</button>'
+            + '</div>';
+        } else if (currentStep === 3) {
+          inner += '<div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #333E56; display: flex; justify-content: space-between; align-items: center;">'
+            + '<span style="font-size: 13px; color: #94A3B8;">Позиція #' + (idx + 1) + '</span>'
+            + '<div style="display: flex; gap: 8px;">'
+            + '<button class="btn-large btn-slate" style="min-height: 48px; padding: 0 16px; font-size: 14px;" ' + (idx === 0 ? 'disabled style="opacity: 0.3;"' : '') + ' onclick="event.stopPropagation(); moveCard(' + idx + ', -1)">⬆ Вгору</button>'
+            + '<button class="btn-large btn-slate" style="min-height: 48px; padding: 0 16px; font-size: 14px;" ' + (idx === cards.length - 1 ? 'disabled style="opacity: 0.3;"' : '') + ' onclick="event.stopPropagation(); moveCard(' + idx + ', 1)">⬇ Вниз</button>'
+            + '</div></div>';
+        } else if (currentStep === 4) {
+          inner += '<div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #333E56; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">'
+            + '<button class="btn-large" style="min-height: 48px; font-size: 14px; ' + (card.marker === 'thought' ? 'background: #F59E0B; color: #0F172A;' : 'background: #242C3E; color: #FCD34D;') + '" onclick="event.stopPropagation(); setCardMarker(\'' + card.id + '\', \'thought\')">💡 Думка</button>'
+            + '<button class="btn-large" style="min-height: 48px; font-size: 14px; ' + (card.marker === 'reason' ? 'background: #3B82F6; color: #FFF;' : 'background: #242C3E; color: #93C5FD;') + '" onclick="event.stopPropagation(); setCardMarker(\'' + card.id + '\', \'reason\')">🔑 Чому</button>'
+            + '<button class="btn-large" style="min-height: 48px; font-size: 14px; ' + (card.marker === 'example' ? 'background: #10B981; color: #FFF;' : 'background: #242C3E; color: #6EE7B7;') + '" onclick="event.stopPropagation(); setCardMarker(\'' + card.id + '\', \'example\')">📸 Приклад</button>'
+            + '</div>';
+        }
+        cardEl.innerHTML = inner;
+        feed.appendChild(cardEl);
+      });
+
+      // Render bin tray
+      const binDiv = document.getElementById('bin-cards');
+      binDiv.innerHTML = '';
+      binCards.forEach(bc => {
+        const item = document.createElement('div');
+        item.style = 'background: #131720; border: 1px solid #2B3448; border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px;';
+        item.innerHTML = '<span style="font-size: 15px; color: #94A3B8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">' + bc.text + '</span>'
+          + '<button class="btn-large btn-slate" style="min-height: 40px; padding: 0 16px; font-size: 13px;" onclick="restoreCard(\'' + bc.id + '\')">↩️ Повернути</button>';
+        binDiv.appendChild(item);
+      });
+
+      // Next button text
+      const nextBtn = document.getElementById('btn-wizard-next');
+      if (currentStep === 4) {
+        nextBtn.innerHTML = '📻 У ефір!';
+        const allMarked = cards.length === 3 && cards.every(c => c.marker);
+        nextBtn.style.opacity = allMarked ? '1' : '0.5';
+      } else {
+        nextBtn.innerHTML = 'Далі ➡️';
+        nextBtn.style.opacity = '1';
+      }
+    }
+
+    // ACTIONS
+    function cutCard(id) {
+      playTone(550, 0.08);
+      const card = cards.find(c => c.id === id);
+      if (!card) return;
+      cards = cards.filter(c => c.id !== id);
+      binCards.unshift(card);
+      selectedCardId = null;
+      renderWizard();
+    }
+
+    function restoreCard(id) {
+      playTone(440, 0.08);
+      const card = binCards.find(c => c.id === id);
+      if (!card) return;
+      binCards = binCards.filter(c => c.id !== id);
+      cards.push(card);
+      renderWizard();
+    }
+
+    function moveCard(index, dir) {
+      playTone(380, 0.06);
+      const target = index + dir;
+      if (target < 0 || target >= cards.length) return;
+      const moved = cards.splice(index, 1)[0];
+      cards.splice(target, 0, moved);
+      renderWizard();
+    }
+
+    function setCardMarker(id, marker) {
+      playTone(marker === 'thought' ? 587 : marker === 'reason' ? 659 : 880, 0.15);
+      const card = cards.find(c => c.id === id);
+      if (card) card.marker = marker;
+      renderWizard();
+    }
+
+    function handleWizardHint() {
+      playTone(600, 0.1);
+      hintLevel = (hintLevel >= 3) ? 1 : hintLevel + 1;
+      renderWizard();
+    }
+
+    function handleWizardBack() {
+      playTone(400, 0.05);
+      if (currentStep > 1) {
+        currentStep--;
+        selectedCardId = null;
+        renderWizard();
+      } else {
+        goToSelectScreen();
+      }
+    }
+
+    function handleWizardNext() {
+      playTone(440, 0.08);
+      if (currentStep === 1) {
+        const hasWater = cards.some(c => c.type === 'water');
+        const hasCoreInBin = binCards.some(c => ['thought', 'reason', 'example'].includes(c.type) && c.type !== currentNews.trapReplaceAs);
+        if (hasCoreInBin) {
+          showNotice('Ой, це важливе!', 'Здається, у кошику лежить важлива частина коментаря. Натисни «↩️ Повернути»!', 1);
+          return;
+        }
+        if (hasWater) {
+          handleWizardHint();
+          return;
+        }
+        currentStep = 2;
+        selectedCardId = null;
+        renderWizard();
+      } else if (currentStep === 2) {
+        const hasTrap = cards.some(c => c.type === 'trap' && !c.isReplaced);
+        if (hasTrap) {
+          showNotice('Залишилася пастка', 'Торкнись речення-пастки та обери влучну заміну або напиши свою!', 2);
+          return;
+        }
+        currentStep = 3;
+        selectedCardId = null;
+        renderWizard();
+      } else if (currentStep === 3) {
+        // Check order
+        const roles = cards.map(c => c.replacedType || c.type);
+        const isOk = roles[0] === 'thought' && roles[1] === 'reason' && roles[2] === 'example';
+        if (!isOk) {
+          document.getElementById('order-warning-modal').style.display = 'flex';
+          return;
+        }
+        currentStep = 4;
+        selectedCardId = null;
+        renderWizard();
+      } else if (currentStep === 4) {
+        validateAndExport();
+      }
+    }
+
+    function closeOrderWarning(retry) {
+      document.getElementById('order-warning-modal').style.display = 'none';
+      if (!retry) {
+        currentStep = 4;
+        selectedCardId = null;
+        renderWizard();
+      }
+    }
+
+    // REPLACEMENT MODAL
+    let replacingCardId = null;
+    function openReplaceModal(cardId) {
+      replacingCardId = cardId;
+      const list = document.getElementById('replace-options-list');
+      list.innerHTML = '';
+      currentNews.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.style = 'background: #242C3E; border: 1px solid #333E56; border-radius: 12px; padding: 14px; text-align: left; font-size: 15px; font-weight: 600; color: #FFF; line-height: 1.4;';
+        btn.onclick = () => {
+          if (!opt.correct) {
+            playTone(300, 0.15);
+            alert('Хм, це теж не підтримує думку. Спробуй інший варіант або вигадай свій!');
+            return;
+          }
+          applyReplace(opt.text, false);
+        };
+        btn.innerHTML = (idx + 1) + '. ' + opt.text;
+        list.appendChild(btn);
+      });
+      document.getElementById('replace-modal').style.display = 'flex';
+    }
+
+    function closeReplaceModal() {
+      document.getElementById('replace-modal').style.display = 'none';
+    }
+
+    function applyReplace(text, isCustom) {
+      playTone(550, 0.1);
+      const card = cards.find(c => c.id === replacingCardId);
+      if (card) {
+        card.text = text;
+        card.isReplaced = true;
+        card.replacedType = currentNews.trapReplaceAs;
+        card.type = currentNews.trapReplaceAs;
+      }
+      closeReplaceModal();
+      renderWizard();
+    }
+
+    function applyCustomReplace() {
+      const val = document.getElementById('custom-replace-text').value.trim();
+      const cnt = getWordsCount(val);
+      if (cnt === 0 || cnt > 15) {
+        alert('Будь ласка, напиши до 15 слів!');
+        return;
+      }
+      applyReplace(val, true);
+      document.getElementById('custom-replace-text').value = '';
+    }
+
+    // VALIDATION
+    function validateAndExport() {
+      const dur = calcDuration(cards);
+      const roles = cards.map(c => c.replacedType || c.type);
+
+      // Check cores
+      if (cards.length < 3 || binCards.some(c => ['thought', 'reason', 'example'].includes(c.type) && c.type !== currentNews.trapReplaceAs)) {
+        showNotice('Ой, це важливе!', 'У кошику залишилася важлива думка чи приклад. Поверни її!', 1);
+        return;
+      }
+      if (cards.some(c => c.type === 'water')) {
+        showNotice('Лишилася вода', 'У коментарі є зайве балакуче речення. Виріж його на кроці 1!', 1);
+        return;
+      }
+      if (cards.some(c => c.type === 'trap' && !c.isReplaced)) {
+        showNotice('Лишилася пастка', 'Заміни речення-пастку на кроці 2!', 2);
+        return;
+      }
+      if (roles[0] !== 'thought' || roles[1] !== 'reason' || roles[2] !== 'example') {
+        showNotice('Порядок частин', 'Розстав кадри: Думка 💡 → Чому 🔑 → Приклад 📸 на кроці 3!', 3);
+        return;
+      }
+      if (cards.some(c => !c.marker)) {
+        showNotice('Постав маркери', 'Познач усі 3 кадри значками 💡 🔑 📸 на кроці 4!', 4);
+        return;
+      }
+      if (dur > 30) {
+        showNotice('Ще трохи довгувато', 'Сюжет триває ' + dur + ' с (ціль: до 30 с). Скороти зайві слова!', 1);
+        return;
+      }
+
+      // SUCCESS!
+      playFanfare();
+      document.getElementById('screen-wizard').style.display = 'none';
+      document.getElementById('screen-export').style.display = 'block';
+      document.getElementById('export-duration-compare').innerText = 'Було 0:' + Math.round(originalRawDuration) + ' → Стало 0:' + Math.round(dur);
+      document.getElementById('export-story-title').innerText = currentNews.title;
+
+      const exportList = document.getElementById('export-text-cards');
+      exportList.innerHTML = '';
+      cards.forEach(c => {
+        let badge = c.marker === 'thought' ? '💡 Що я думаю' : c.marker === 'reason' ? '🔑 Чому (Бо)' : '📸 Приклад';
+        let badgeColor = c.marker === 'thought' ? 'badge-amber' : c.marker === 'reason' ? 'badge-blue' : 'badge-emerald';
+        const d = document.createElement('div');
+        d.innerHTML = '<span class="badge ' + badgeColor + '" style="margin-bottom: 6px;">' + badge + '</span>'
+          + '<div style="font-size: 22px; font-weight: 600; line-height: 1.5; color: #FFF;">' + c.text + '</div>';
+        exportList.appendChild(d);
+      });
+    }
+
+    function showNotice(title, msg, returnStep) {
+      playTone(320, 0.15);
+      document.getElementById('notice-title').innerText = title;
+      document.getElementById('notice-msg').innerText = msg;
+      const btn = document.getElementById('btn-notice-action');
+      btn.innerText = 'Повернутися до кроку ' + returnStep + ' ➡️';
+      btn.onclick = () => {
+        document.getElementById('notice-modal').style.display = 'none';
+        currentStep = returnStep;
+        renderWizard();
+      };
+      document.getElementById('notice-modal').style.display = 'flex';
+    }
+
+    function closeNoticeModal() {
+      document.getElementById('notice-modal').style.display = 'none';
+    }
+
+    // TELEPROMPTER KARAOKE
+    function togglePrompter() {
+      if (isPrompterRunning) {
+        clearInterval(prompterTimer);
+        isPrompterRunning = false;
+        document.getElementById('btn-prompter').innerText = '▶ Продовжити суфлер';
+        return;
+      }
+      const words = cards.flatMap(c => c.text.trim().split(/\s+/).filter(Boolean));
+      if (prompterWordIndex >= words.length - 1) prompterWordIndex = 0;
+      isPrompterRunning = true;
+      document.getElementById('btn-prompter').innerText = '⏸ Пауза';
+      document.getElementById('prompter-display').style.display = 'block';
+
+      function updatePrompter() {
+        const display = document.getElementById('prompter-display');
+        display.innerHTML = words.map((w, i) => {
+          if (i === prompterWordIndex) return '<span style="background: #F59E0B; color: #0F172A; border-radius: 4px; padding: 2px 6px; font-weight: 800;">' + w + '</span>';
+          if (i < prompterWordIndex) return '<span style="color: #FFF;">' + w + '</span>';
+          return '<span style="color: #64748B;">' + w + '</span>';
+        }).join(' ');
+      }
+      updatePrompter();
+
+      prompterTimer = setInterval(() => {
+        prompterWordIndex++;
+        if (prompterWordIndex >= words.length) {
+          clearInterval(prompterTimer);
+          isPrompterRunning = false;
+          document.getElementById('btn-prompter').innerText = '▶ Повторити суфлер';
+          return;
+        }
+        updatePrompter();
+      }, 500); // 2 words/sec
+    }
+
+    function remontageCurrent() {
+      if (currentNews) selectNews(currentNews);
+    }
+
+    function goToSelectScreen() {
+      document.getElementById('screen-export').style.display = 'none';
+      document.getElementById('screen-wizard').style.display = 'none';
+      document.getElementById('screen-teacher').style.display = 'none';
+      document.getElementById('duration-indicator').style.display = 'none';
+      document.getElementById('header-title').innerText = 'Монтажна студія';
+      document.getElementById('screen-select').style.display = 'block';
+    }
+
+    // TEACHER MODE
+    function toggleTeacherMode() {
+      const teacherScreen = document.getElementById('screen-teacher');
+      if (teacherScreen.style.display === 'none') {
+        openTeacherScreen();
+      } else {
+        goToSelectScreen();
+      }
+    }
+
+    function openTeacherScreen() {
+      document.getElementById('screen-select').style.display = 'none';
+      document.getElementById('screen-wizard').style.display = 'none';
+      document.getElementById('screen-export').style.display = 'none';
+      document.getElementById('screen-teacher').style.display = 'block';
+      document.getElementById('header-title').innerText = 'Екран викладача (Zoom)';
+      renderTeacherGrid();
+    }
+
+    function renderTeacherGrid() {
+      const grid = document.getElementById('teacher-grid');
+      grid.innerHTML = '';
+      NEWS.forEach(n => {
+        const isTaken = !!teacherTaken[n.id];
+        const card = document.createElement('div');
+        card.style = 'background: ' + (isTaken ? '#181B24' : '#1C2230') + '; border: 2px solid ' + (isTaken ? '#333E56' : '#2B3448') + '; border-radius: 16px; padding: 16px; cursor: pointer; opacity: ' + (isTaken ? '0.5' : '1') + '; position: relative;';
+        card.onclick = () => {
+          teacherTaken[n.id] = !teacherTaken[n.id];
+          playTone(400, 0.05);
+          renderTeacherGrid();
+        };
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-family: monospace; font-size: 20px; font-weight: 800; color: ${isTaken ? '#64748B' : '#F59E0B'};">#${n.id}</span>
+            <span class="badge ${isTaken ? 'badge-amber' : 'badge-emerald'}">${isTaken ? '🔒 ЗАЙНЯТО' : 'ВІЛЬНО'}</span>
+          </div>
+          <h4 style="font-size: 14px; font-weight: 700; color: ${isTaken ? '#64748B' : '#FFF'}; ${isTaken ? 'text-decoration: line-through;' : ''}">${n.title}</h4>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function clearAllTeacherTaken() {
+      if (confirm('Очистити всі позначки «Зайнято» для нової групи?')) {
+        teacherTaken = {};
+        renderTeacherGrid();
+      }
+    }
+  </script>
+</body>
+</html>
